@@ -2,7 +2,7 @@ var fs = require('fs');
 var mysql = require('mysql');
 const got = require('got');
 
-const PATH = __dirname + "/dataz/";
+const PATH = __dirname + "/test/";
 
 var connection = mysql.createConnection({
   host     : 'localhost',
