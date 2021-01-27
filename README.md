@@ -1,2 +1,4 @@
 # minecraft-stats
-minecraft json stats convertion to mysql db
+is a minecraft json statistics convertion to mysql db
+
+tested with data dir with over 6.5k users
