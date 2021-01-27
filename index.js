@@ -11,17 +11,14 @@ var connection = mysql.createConnection({
   database : 'bonk'
 });
 
-/*
-mojang ratelimit bad fakof
 let getUsername = async (uuid) => {
     if(uuid.startsWith("00000000"))
       return "Bedrock user"
 
-    const response = await got(`https://api.mojang.com/user/profiles/${uuid}/names`);
+    const response = await got(`https://sessionserver.mojang.com/session/minecraft/profile/${uuid}`);
     var obj = JSON.parse(response.body);
-    return obj[obj.length - 1].name;
+    return obj.name;
 }
-*/
 
 let ifNotExists = async (FormattedKey, values) =>{
   return new Promise((resolve, reject) => {
@@ -53,16 +50,18 @@ let ifNotExists = async (FormattedKey, values) =>{
   for(file of fs.readdirSync(PATH)){
     var fileContent = await JSON.parse(fs.readFileSync(PATH + file))
 
-    console.time(file);
+
 
     var Stats = fileContent["stats"];
     var uuid = file.substr(0, file.length-5);
+    var name = await getUsername(uuid);
 
+    console.time(name + " - " + file);
     for(var Table of Object.keys(Stats)){
       var FormattedKey = Table.split(":")[1];
 
-      valuesName = "uuid VARCHAR(16) UNIQUE, ";
-      values = {uuid: uuid};
+      valuesName = "uuid VARCHAR(16) UNIQUE, name VARCHAR(16), ";
+      values = {uuid: uuid, name: name};
 
       for(var item in Stats[Table]){
         var key = item.split(":")[1];
@@ -79,7 +78,7 @@ let ifNotExists = async (FormattedKey, values) =>{
     };
 
     //stop timer
-    console.timeEnd(file);
+    console.timeEnd(name + " - " + file);
   };
 
   //done with everything
