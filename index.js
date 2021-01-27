@@ -1,5 +1,5 @@
 var fs = require('fs');
-var mysql = require('mysql');
+var mysql = require('mysql2');
 const got = require('got');
 
 const PATH = __dirname + "/test/";
@@ -16,8 +16,7 @@ let getUsername = async (uuid) => {
       return "Bedrock user"
 
     const response = await got(`https://sessionserver.mojang.com/session/minecraft/profile/${uuid}`);
-    var obj = JSON.parse(response.body);
-    return obj.name;
+    return JSON.parse(response.body).name;
 }
 
 let ifNotExists = async (FormattedKey, values) =>{
@@ -46,21 +45,28 @@ let ifNotExists = async (FormattedKey, values) =>{
       resolve();
 })})};
 
-(async () => {
+FileList = [];
+
+let readAll = () => {
   for(file of fs.readdirSync(PATH)){
-    var fileContent = await JSON.parse(fs.readFileSync(PATH + file))
+    var xd = JSON.parse(fs.readFileSync(PATH + file));
+    xd.file = file;
+    FileList.push(xd);
+  }
+}
+readAll();
 
-
-
+(async () => {
+  for(fileContent of FileList){
     var Stats = fileContent["stats"];
-    var uuid = file.substr(0, file.length-5);
+    var uuid = fileContent.file.split(".")[0];
     var name = await getUsername(uuid);
 
-    console.time(name + " - " + file);
+    console.time(name + " - " + uuid);
     for(var Table of Object.keys(Stats)){
       var FormattedKey = Table.split(":")[1];
 
-      valuesName = "uuid VARCHAR(16) UNIQUE, name VARCHAR(16), ";
+      valuesName = "uuid VARCHAR(36) UNIQUE, name VARCHAR(16), ";
       values = {uuid: uuid, name: name};
 
       for(var item in Stats[Table]){
@@ -78,7 +84,7 @@ let ifNotExists = async (FormattedKey, values) =>{
     };
 
     //stop timer
-    console.timeEnd(name + " - " + file);
+    console.timeEnd(name + " - " + uuid);
   };
 
   //done with everything
